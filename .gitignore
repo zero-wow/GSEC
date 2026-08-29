@@ -4,6 +4,7 @@ Cache/
 Logs/
 SavedVariables/
 GSE/Sequences/MySequences.lua
+GSE_GUI/*-backup-*.lua
 
 # Temporary and backup files
 *.bak
