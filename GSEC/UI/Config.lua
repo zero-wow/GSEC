@@ -500,21 +500,28 @@ function Config:ScrollBy(amount)
   Config.slider:SetValue(math.max(minimum, math.min(maximum, Config.slider:GetValue() + amount)))
 end
 
+local function refreshSequenceList()
+  if Config.SequenceEditor and Config.SequenceEditor.RefreshList then
+    Config.SequenceEditor:RefreshList()
+  end
+end
+
 function Config:BuildOverview(page)
   local y = Config:CreateSection(page, 12, "CONTROL CENTER", "The practical settings most players change. Changes save immediately.")
   y = Config:CreateToggle(page, y, "Reset On Leaving Combat", "Return active sequences to their first step.", function() return GSEOptions.resetOOC end, function(v) GSEOptions.resetOOC = v end, true)
   y = Config:CreateToggle(page, y, "Require A Target", "Prevent macros firing without a current target.", function() return GSEOptions.requireTarget end, function(v) GSEOptions.requireTarget = v end, true)
   y = Config:CreateToggle(page, y, "Use Both Trinkets", "Include slots 13 and 14 in KeyRelease.", function() return GSEOptions.use13 or GSEOptions.use14 end, function(v) GSEOptions.use13, GSEOptions.use14 = v, v end, true)
   y = Config:CreateSection(page, y + 8, "SEQUENCE LIST", "What appears in the GSE Control sequence list.")
-  y = Config:CreateToggle(page, y, "Show GLOBAL Macros", "Include account-wide sequences in the editor list.", function() return GSEOptions.filterList["Global"] end, function(v) GSEOptions.filterList["Global"] = v end)
-  y = Config:CreateChoice(page, y, "Auto-Built Templates", "ALL adds every tracked generated template. CURRENT shows only this character's generated set. HIDE removes generated templates from the list.", function()
+  y = Config:CreateToggle(page, y, "Show ALL Current-Class Talent Specs", "Include sequences from every talent specialization of your current class.", function() return GSEOptions.filterList["Class"] end, function(v) GSEOptions.filterList["Class"] = v; refreshSequenceList() end)
+  y = Config:CreateToggle(page, y, "Show GLOBAL Macros", "Include account-wide sequences in the editor list.", function() return GSEOptions.filterList["Global"] end, function(v) GSEOptions.filterList["Global"] = v; refreshSequenceList() end)
+  y = Config:CreateChoice(page, y, "Auto-Built Templates Visibility", "ALL adds every tracked generated template. CURRENT shows only this character's generated set. HIDE removes generated templates from the list.", function()
     local mode = GSEOptions.autoBuiltTemplateFilter
     if mode == "ALL" or mode == "HIDE" then return mode end
     return "CURRENT"
   end, function(value)
     GSEOptions.autoBuiltTemplateFilter = value
   end, { { "ALL", "ALL" }, { "CURRENT", "CURRENT" }, { "HIDE", "HIDE" } }, function()
-    if Config.SequenceEditor and Config.SequenceEditor.RefreshList then Config.SequenceEditor:RefreshList() end
+    refreshSequenceList()
   end)
   y = Config:CreateToggle(page, y, "Use Verbose Exports", "Export readable Lua instead of compact data.", function() return GSEOptions.UseVerboseFormat end, function(v) GSEOptions.UseVerboseFormat = v end)
   return y + 8
@@ -542,9 +549,9 @@ end
 function Config:BuildLibrary(page)
   local y = Config:CreateSection(page, 12, "LIBRARY", "What GSE displays, creates, and maintains.")
   local rows = {
-    { "Show ALL Macros", "List all class and specialization sequences.", function() return GSEOptions.filterList["All"] end, function(v) GSEOptions.filterList["All"] = v end },
-    { "Show Class Macros", "Include all sequences for your current class.", function() return GSEOptions.filterList["Class"] end, function(v) GSEOptions.filterList["Class"] = v end },
-    { "Show GLOBAL Macros", "Include account-wide sequences.", function() return GSEOptions.filterList["Global"] end, function(v) GSEOptions.filterList["Global"] = v end },
+    { "Show ALL Macros", "List sequences from every class and talent specialization.", function() return GSEOptions.filterList["All"] end, function(v) GSEOptions.filterList["All"] = v; refreshSequenceList() end },
+    { "Show ALL Current-Class Talent Specs", "Include every talent specialization for your current class.", function() return GSEOptions.filterList["Class"] end, function(v) GSEOptions.filterList["Class"] = v; refreshSequenceList() end },
+    { "Show GLOBAL Macros", "Include account-wide sequences.", function() return GSEOptions.filterList["Global"] end, function(v) GSEOptions.filterList["Global"] = v; refreshSequenceList() end },
     { "Create GLOBAL Buttons", "Create executable buttons for global sequences.", function() return GSEOptions.CreateGlobalButtons end, function(v) GSEOptions.CreateGlobalButtons = v end },
     { "Use Account Macro Overflow", "Use account macros when character slots are full.", function() return GSEOptions.overflowPersonalMacros end, function(v) GSEOptions.overflowPersonalMacros = v end },
     { "Create Class Macro Stubs", "Automatically create a macro stub for class sequences.", function() return GSEOptions.autoCreateMacroStubsClass end, function(v) GSEOptions.autoCreateMacroStubsClass = v end },
