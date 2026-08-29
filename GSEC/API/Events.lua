@@ -319,6 +319,7 @@ local function PrintGSECHelp()
   GSE.Print("GSEC is a WotLK 3.3.5 macro sequencer and control center.", GNOME)
   GSE.Print("GSEC is authored by Zero and built on GSE by TimothyLuke, Gummed, and cerberus; the original GnomeSequencer was written by semlar.", GNOME)
   GSE.Print("Use " .. GSEOptions.CommandColour .. "/gsec|r to open the control center.", GNOME)
+  GSE.Print("Use " .. GSEOptions.CommandColour .. "/gsec old|r to open the legacy GSE interface only when compatibility requires it.", GNOME)
   GSE.Print("Use " .. GSEOptions.CommandColour .. "/gsec showspec|r, " .. GSEOptions.CommandColour .. "/gsec cleanorphans|r, or " .. GSEOptions.CommandColour .. "/gsec checkmacrosforerrors|r for legacy maintenance commands.", GNOME)
   GSE.Print("Use " .. GSEOptions.CommandColour .. "/gsec cleancorrupted|r or " .. GSEOptions.CommandColour .. "/gsec loadsamples|r for sequence maintenance and samples.", GNOME)
 end
@@ -503,6 +504,10 @@ function GSE:GSECSlash(input)
     else
       GSE.GUIShowViewer()
     end
+    return
+  end
+  if string.lower(input) == "old" then
+    GSE.GUIShowViewer()
     return
   end
   GSE:GSSlash(input)
