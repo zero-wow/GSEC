@@ -587,8 +587,8 @@ function Config:BuildLibrary(page)
     y = Config:CreateToggle(page, y, row[1], row[2], getter, setter)
   end
   y = Config:CreateSection(page, y + 8, "LAUNCHER", "Broker tooltip and login behavior.")
-  y = Config:CreateToggle(page, y, "Show GSE Users In LDB", "List group members using GSE in the launcher tooltip.", function() return GSEOptions.showGSEUsers end, function(v) GSEOptions.showGSEUsers = v end)
-  y = Config:CreateToggle(page, y, "Show OOC Queue In LDB", "Show pending out-of-combat work in the launcher tooltip.", function() return GSEOptions.showGSEoocqueue end, function(v) GSEOptions.showGSEoocqueue = v end)
+  y = Config:CreateToggle(page, y, "Show GSEC Users In LDB", "Show a compact group-user summary in the launcher tooltip.", function() return GSEOptions.showGSEUsers end, function(v) GSEOptions.showGSEUsers = v end)
+  y = Config:CreateToggle(page, y, "Show Pending Queue In LDB", "Show a one-line pending-work summary only when the queue is not empty.", function() return GSEOptions.showGSEoocqueue end, function(v) GSEOptions.showGSEoocqueue = v end)
   y = Config:CreateToggle(page, y, "Hide Login Message", "Do not print GSE startup messages.", function() return GSEOptions.HideLoginMessage end, function(v) GSEOptions.HideLoginMessage = v end)
   return y + 8
 end
