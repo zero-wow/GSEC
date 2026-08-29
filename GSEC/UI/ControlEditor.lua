@@ -606,7 +606,7 @@ function Editor:RefreshList()
       elseif talentSpecMode == "CLASS" and classID ~= currentClassID then
         table.insert(hidden, "OTHER CLASS")
       end
-    elseif searchOverride and classID == 0 and not GSEOptions.filterList["Global"] then
+    elseif searchOverride and classID == 0 and not (GSEOptions.filterList or {})["Global"] then
       table.insert(hidden, "GLOBAL")
     end
     if templateMode == "HIDE" and allTemplates[key] then
