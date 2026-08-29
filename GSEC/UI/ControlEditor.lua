@@ -72,18 +72,36 @@ local function generatedTemplateKeys()
   local root = type(GSEOptions.SpellbookBuilderOverrides) == "table" and GSEOptions.SpellbookBuilderOverrides or nil
   local sets = root and root.generatedSets
   local all, current = {}, {}
-  if type(sets) ~= "table" then return all, current end
   local characterKey = currentBuilderCharacterKey()
-  for owner, generated in pairs(sets) do
-    if type(generated) == "table" and type(generated.roles) == "table" then
-      local classID = tonumber(generated.classID) or (owner == characterKey and GSE.GetCurrentClassID())
-      if classID then
-        for _, record in pairs(generated.roles) do
-          if type(record) == "table" and type(record.name) == "string" and record.name ~= "" then
-            local key = tostring(classID) .. "," .. record.name
-            all[key] = true
-            if owner == characterKey then current[key] = true end
+  if type(sets) == "table" then
+    for owner, generated in pairs(sets) do
+      if type(generated) == "table" and type(generated.roles) == "table" then
+        local classID = tonumber(generated.classID) or (owner == characterKey and GSE.GetCurrentClassID())
+        if classID then
+          for _, record in pairs(generated.roles) do
+            if type(record) == "table" and type(record.name) == "string" and record.name ~= "" then
+              local key = tostring(classID) .. "," .. record.name
+              all[key] = true
+              if owner == characterKey then current[key] = true end
+            end
           end
+        end
+      end
+    end
+  end
+
+  -- Older generated drafts did not persist builder tracking. Their durable
+  -- marker remains in the sequence itself, so recover them for ALL visibility.
+  for classID, library in pairs(GSELibrary or {}) do
+    if type(library) == "table" then
+      for sequenceName, sequence in pairs(library) do
+        local help = type(sequence) == "table" and tostring(sequence.Help or "") or ""
+        local generated = type(sequence) == "table" and (sequence.SuppressAutoMacroStub == true
+          or string.find(help, "Generated from the live spellbook by GSE Spellbook Builder.", 1, true) ~= nil)
+        if generated then
+          local key = tostring(classID) .. "," .. tostring(sequenceName)
+          all[key] = true
+          if tostring(sequence.Author or "") == characterKey then current[key] = true end
         end
       end
     end
