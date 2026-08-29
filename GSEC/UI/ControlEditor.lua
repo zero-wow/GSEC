@@ -578,17 +578,56 @@ function Editor:RefreshList()
   end
   local templateMode = GSEOptions.autoBuiltTemplateFilter
   if templateMode ~= "ALL" and templateMode ~= "HIDE" then templateMode = "CURRENT" end
+  local talentSpecMode = GSEOptions.talentSpecMacroVisibility
+  if talentSpecMode ~= "NONE" and talentSpecMode ~= "CURRENT" and talentSpecMode ~= "CLASS" and talentSpecMode ~= "ALL" then
+    talentSpecMode = nil
+  end
   local allTemplates, currentTemplates = generatedTemplateKeys()
   local seen = {}
-  local function addEntry(key, name)
+  local currentClassID = GSE.GetCurrentClassID()
+  local currentSpecID = GSE.GetCurrentSpecID()
+  local function addEntry(key, name, searchOverride)
     key, name = tostring(key), tostring(name)
     if seen[key] then return end
-    if templateMode == "HIDE" and allTemplates[key] then return end
-    if templateMode == "CURRENT" and allTemplates[key] and not currentTemplates[key] then return end
-    if filter ~= "" and not string.find(string.lower(name), filter, 1, true) then return end
     local elements = GSE.split(key, ",")
+    local classID = tonumber(elements[1]) or 0
+    local sequence = GSELibrary[classID] and GSELibrary[classID][name]
+    if not sequence then return end
+    if filter ~= "" and not string.find(string.lower(name), filter, 1, true) then return end
+    local hidden = {}
+    if talentSpecMode == "NONE" and classID ~= 0 then
+      if not searchOverride then return end
+      table.insert(hidden, "TALENT SPECS")
+    elseif searchOverride and classID ~= 0 then
+      if talentSpecMode == "CURRENT" and classID ~= currentClassID then
+        table.insert(hidden, "OTHER CLASS")
+      elseif talentSpecMode == "CURRENT" and tonumber(sequence.SpecID) ~= tonumber(currentSpecID) and tonumber(sequence.SpecID) ~= classID then
+        table.insert(hidden, "OTHER TALENT SPEC")
+      elseif talentSpecMode == "CLASS" and classID ~= currentClassID then
+        table.insert(hidden, "OTHER CLASS")
+      end
+    elseif searchOverride and classID == 0 and not GSEOptions.filterList["Global"] then
+      table.insert(hidden, "GLOBAL")
+    end
+    if templateMode == "HIDE" and allTemplates[key] then
+      if not searchOverride then return end
+      table.insert(hidden, "AUTO-BUILT")
+    elseif templateMode == "CURRENT" and allTemplates[key] and not currentTemplates[key] then
+      if not searchOverride then return end
+      table.insert(hidden, "OTHER CHARACTER")
+    end
+    local source = "GLOBAL"
+    if classID ~= 0 then
+      local specID = tonumber(sequence.SpecID)
+      source = (GSE.Static.wotlkSpecIDList and GSE.Static.wotlkSpecIDList[specID]) or ("CLASS " .. tostring(classID))
+    end
+    local label = name
+    if filter ~= "" then
+      label = label .. " [" .. source .. "]"
+      if #hidden > 0 then label = label .. " [HIDDEN: " .. table.concat(hidden, ", ") .. "]" end
+    end
     seen[key] = true
-    table.insert(entries, { key = key, name = name, classID = tonumber(elements[1]) or 0 })
+    table.insert(entries, { key = key, name = name, label = label, classID = classID })
   end
   for key, name in pairs(names) do
     addEntry(key, name)
@@ -601,6 +640,15 @@ function Editor:RefreshList()
       local sequenceName = elements[2]
       if sequenceName and GSELibrary[classID] and GSELibrary[classID][sequenceName] then
         addEntry(key, sequenceName)
+      end
+    end
+  end
+  if filter ~= "" then
+    for classID, library in pairs(GSELibrary or {}) do
+      if type(library) == "table" then
+        for sequenceName in pairs(library) do
+          addEntry(tostring(classID) .. "," .. tostring(sequenceName), sequenceName, true)
+        end
       end
     end
   end
@@ -632,7 +680,7 @@ function Editor:RefreshList()
     row:SetPoint("TOPLEFT", self.listChild, "TOPLEFT", 0, -((index - 1) * 21))
     row:SetPoint("TOPRIGHT", self.listChild, "TOPRIGHT", 0, -((index - 1) * 21))
     row.entryKey = entry.key
-    row.label:SetText((entry.classID == 0 and "* " or "") .. entry.name)
+    row.label:SetText((entry.classID == 0 and "* " or "") .. (entry.label or entry.name))
     row.selected = entry.key == self.selectedKey
     row:RefreshTheme()
     row:Show()

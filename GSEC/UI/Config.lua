@@ -404,7 +404,7 @@ function Config:CreateChoice(page, y, title, detail, getter, setter, values, onC
     local current = getter()
     local display = tostring(current or "")
     for _, entry in ipairs(values) do if entry[1] == current then display = entry[2] break end end
-    state:SetText(display)
+    state:SetText(display .. " v")
     local colors = palette()
     self:SetBackdropColor(unpack(colors[self.hovered and "hover" or "inset"] or colors.inset))
     self:SetBackdropBorderColor(unpack(colors[self.hovered and "focusBorder" or "muted"] or colors.muted))
@@ -506,13 +506,37 @@ local function refreshSequenceList()
   end
 end
 
+local function getTalentSpecMacroMode()
+  local mode = GSEOptions.talentSpecMacroVisibility
+  if mode == "NONE" or mode == "CURRENT" or mode == "CLASS" or mode == "ALL" then return mode end
+  local filters = GSEOptions.filterList or {}
+  if filters["All"] then return "ALL" end
+  if filters["Class"] then return "CLASS" end
+  return "CURRENT"
+end
+
+local function setTalentSpecMacroMode(mode)
+  local filters = GSEOptions.filterList or {}
+  GSEOptions.filterList = filters
+  GSEOptions.talentSpecMacroVisibility = mode
+  filters["All"] = mode == "ALL"
+  filters["Class"] = mode == "CLASS" or mode == "ALL"
+end
+
+local TALENT_SPEC_MACRO_CHOICES = {
+  { "CURRENT", "CURRENT" },
+  { "CLASS", "CURRENT CLASS" },
+  { "ALL", "ALL CLASSES" },
+  { "NONE", "NONE" },
+}
+
 function Config:BuildOverview(page)
   local y = Config:CreateSection(page, 12, "CONTROL CENTER", "The practical settings most players change. Changes save immediately.")
   y = Config:CreateToggle(page, y, "Reset On Leaving Combat", "Return active sequences to their first step.", function() return GSEOptions.resetOOC end, function(v) GSEOptions.resetOOC = v end, true)
   y = Config:CreateToggle(page, y, "Require A Target", "Prevent macros firing without a current target.", function() return GSEOptions.requireTarget end, function(v) GSEOptions.requireTarget = v end, true)
   y = Config:CreateToggle(page, y, "Use Both Trinkets", "Include slots 13 and 14 in KeyRelease.", function() return GSEOptions.use13 or GSEOptions.use14 end, function(v) GSEOptions.use13, GSEOptions.use14 = v, v end, true)
   y = Config:CreateSection(page, y + 8, "SEQUENCE LIST", "What appears in the GSE Control sequence list.")
-  y = Config:CreateToggle(page, y, "Show ALL Current-Class Talent Specs", "Include sequences from every talent specialization of your current class.", function() return GSEOptions.filterList["Class"] end, function(v) GSEOptions.filterList["Class"] = v; refreshSequenceList() end)
+  y = Config:CreateChoice(page, y, "Talent-Spec Macros", "CURRENT shows your active talent spec. CURRENT CLASS shows every talent spec for this class. ALL CLASSES shows every stored talent-spec sequence. NONE hides talent-spec sequences while leaving GLOBAL macros available.", getTalentSpecMacroMode, function(value) setTalentSpecMacroMode(value); refreshSequenceList() end, TALENT_SPEC_MACRO_CHOICES)
   y = Config:CreateToggle(page, y, "Show GLOBAL Macros", "Include account-wide sequences in the editor list.", function() return GSEOptions.filterList["Global"] end, function(v) GSEOptions.filterList["Global"] = v; refreshSequenceList() end)
   y = Config:CreateChoice(page, y, "Auto-Built Templates Visibility", "ALL adds every tracked generated template. CURRENT shows only this character's generated set. HIDE removes generated templates from the list.", function()
     local mode = GSEOptions.autoBuiltTemplateFilter
@@ -548,9 +572,8 @@ end
 
 function Config:BuildLibrary(page)
   local y = Config:CreateSection(page, 12, "LIBRARY", "What GSE displays, creates, and maintains.")
+  y = Config:CreateChoice(page, y, "Talent-Spec Macros", "Choose which talent-spec sequences appear in the editor list.", getTalentSpecMacroMode, function(value) setTalentSpecMacroMode(value); refreshSequenceList() end, TALENT_SPEC_MACRO_CHOICES)
   local rows = {
-    { "Show ALL Macros", "List sequences from every class and talent specialization.", function() return GSEOptions.filterList["All"] end, function(v) GSEOptions.filterList["All"] = v; refreshSequenceList() end },
-    { "Show ALL Current-Class Talent Specs", "Include every talent specialization for your current class.", function() return GSEOptions.filterList["Class"] end, function(v) GSEOptions.filterList["Class"] = v; refreshSequenceList() end },
     { "Show GLOBAL Macros", "Include account-wide sequences.", function() return GSEOptions.filterList["Global"] end, function(v) GSEOptions.filterList["Global"] = v; refreshSequenceList() end },
     { "Create GLOBAL Buttons", "Create executable buttons for global sequences.", function() return GSEOptions.CreateGlobalButtons end, function(v) GSEOptions.CreateGlobalButtons = v end },
     { "Use Account Macro Overflow", "Use account macros when character slots are full.", function() return GSEOptions.overflowPersonalMacros end, function(v) GSEOptions.overflowPersonalMacros = v end },
