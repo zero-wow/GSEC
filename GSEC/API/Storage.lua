@@ -1030,11 +1030,16 @@ end
 
 --- Not Used
 function GSE.GetDefaultIcon()
-  local currentSpec, currentSpecID,defaulticon = GSE.GetCurrentSpecID()
- -- local currentSpecID = currentSpec and select(1, GetSpecializationInfo(currentSpec)) or ""
-  
-  --local _, _, _, defaulticon, _, _, _ = GetSpecializationInfoByID(currentSpecID)
-  return strsub(defaulticon, 17)
+  local _, _, defaulticon = GSE.GetCurrentSpecID()
+  if type(defaulticon) ~= "string" or defaulticon == "" then
+    defaulticon = GSE.GetClassIcon(GSE.GetCurrentClassID()) or "INV_MISC_QUESTIONMARK"
+  end
+
+  local iconPrefix = "Interface\\Icons\\"
+  if string.sub(defaulticon, 1, string.len(iconPrefix)) == iconPrefix then
+    return string.sub(defaulticon, string.len(iconPrefix) + 1)
+  end
+  return defaulticon
 end
 
 
@@ -1108,10 +1113,8 @@ function GSE.GetMacroIcon(classid, sequenceIndex)
     if sequence.SpecID == 0 then
       return "INV_MISC_QUESTIONMARK"
     else
-     -- local _, _, _, specicon, _, _, _ = GetSpecializationInfoByID((GSE.isEmpty(sequence.SpecID) and GSE.GetCurrentSpecID() or sequence.SpecID))
-	 local specicon
-      GSE.PrintDebugMessage("No Sequence Icon setting to " .. strsub(specicon, 17), GNOME)
-      return strsub(specicon, 17)
+      -- Ascension exposes 3.3.5 talent APIs, not Retail specialization icons.
+      return GSE.GetClassIcon(classid) or "INV_MISC_QUESTIONMARK"
     end
   elseif GSE.isEmpty(iconid) and not GSE.isEmpty(sequence.Icon) then
 
