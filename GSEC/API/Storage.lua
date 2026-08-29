@@ -294,7 +294,8 @@ function GSE.CreateMacroIcon(sequenceName, icon, forceglobalstub)
     elseif numAccountMacros >= MAX_ACCOUNT_MACROS - 1 and GSEOptions.overflowPersonalMacros then
       GSE.Print(L["Close to Maximum Macros.|r  You can have a maximum of "].. MAX_CHARACTER_MACROS .. L[" macros per character.  You currently have "] .. GSEOptions.EmphasisColour .. numCharacterMacros .. L["|r.  You can also have a  maximum of "] .. MAX_ACCOUNT_MACROS .. L[" macros per Account.  You currently have "] .. GSEOptions.EmphasisColour .. numAccountMacros .. L["|r. As a result this macro was not created.  Please delete some macros and reenter "] .. GSEOptions.CommandColour .. L["/gs|r again."], GNOME)
     else
-     local sequenceid = CreateMacro(sequenceName, 1, GSE.CreateMacroString(sequenceName), (forceglobalstub and false or GSE.SetMacroLocation()) )
+     local macroIcon = GSE.isEmpty(icon) and (Statics.QuestionMark or 1) or icon
+     local sequenceid = CreateMacro(sequenceName, macroIcon, GSE.CreateMacroString(sequenceName), (forceglobalstub and false or GSE.SetMacroLocation()) )
 	end
   end
 end
@@ -335,17 +336,23 @@ function GSE.ImportSequence(importStr, legacy, createicon)
 
     local TempSequences = assert(func())
     if not GSE.isEmpty(TempSequences) then
+      local preparedSequences = {}
       for k,v in pairs(TempSequences) do
         if legacy then
           v = GSE.ConvertLegacySequence(v)
         end
-        GSE.AddSequenceToCollection(k, v)
+        if type(v) ~= "table" then
+          return false, "Invalid sequence definition: " .. tostring(k)
+        end
         if GSE.isEmpty(v.Icon) then
-          -- Set a default icon
           v.Icon = GSE.GetDefaultIcon()
         end
+        table.insert(preparedSequences, { name = k, sequence = v })
+      end
+      for _, entry in ipairs(preparedSequences) do
+        GSE.AddSequenceToCollection(entry.name, entry.sequence)
         if createicon then
-          GSE.CheckMacroCreated(k, true)
+          GSE.CheckMacroCreated(entry.name, true)
         end
       end
       success = true
