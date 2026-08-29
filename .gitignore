@@ -1,0 +1,18 @@
+# WoW client-local data
+WTF/
+Cache/
+Logs/
+SavedVariables/
+GSE/Sequences/MySequences.lua
+
+# Temporary and backup files
+*.bak
+*.tmp
+*.log
+*.zip
+*.7z
+*.rar
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
