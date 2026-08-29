@@ -46,7 +46,7 @@ local function addPartyUsers(tooltip)
     return left.name < right.name
   end)
 
-  addLine(tooltip, L["GSE Users"], TITLE_R, TITLE_G, TITLE_B)
+  addLine(tooltip, "GSEC Users", TITLE_R, TITLE_G, TITLE_B)
   for _, user in ipairs(users) do
     addDoubleLine(tooltip, user.name, user.version)
   end
@@ -95,7 +95,7 @@ local function showTooltip(tooltip)
   tooltip:ClearLines()
   addDoubleLine(
     tooltip,
-    L["GSE"],
+    "GSEC",
     GSE.formatModVersion(GSE.VersionString),
     TITLE_R,
     TITLE_G,
@@ -104,9 +104,9 @@ local function showTooltip(tooltip)
     MUTED_G,
     MUTED_B
   )
-  addLine(tooltip, L["GSE: Left Click to open the Sequence Editor"])
-  addLine(tooltip, L["GSE: Middle Click to open the Transmission Interface"])
-  addLine(tooltip, L["GSE: Right Click to open the Sequence Debugger"])
+  addLine(tooltip, "GSEC: Left Click to open the Control Center")
+  addLine(tooltip, "GSEC: Middle Click to open the Transmission Interface")
+  addLine(tooltip, "GSEC: Right Click to open the Sequence Debugger")
   addPartyUsers(tooltip)
   addOOCQueue(tooltip)
 end
@@ -114,7 +114,7 @@ end
 local function handleClick(_, button)
   GameTooltip:Hide()
   if button == "LeftButton" then
-    GSE.GUIShowViewer()
+    if GSE.OpenControlPanel then GSE.OpenControlPanel() else GSE.GUIShowViewer() end
   elseif button == "MiddleButton" then
     GSE.GUIShowTransmissionGui()
   elseif button == "RightButton" then
@@ -123,9 +123,9 @@ local function handleClick(_, button)
 end
 
 local ldb = LibStub:GetLibrary("LibDataBroker-1.1")
-ldb:NewDataObject(L["GSE"] .. " " .. L["GnomeSequencer-Enhanced"], {
+ldb:NewDataObject("GSEC", {
   type = "data source",
-  text = "GSE",
+  text = "GSEC",
   OnTooltipShow = showTooltip,
   OnClick = handleClick
 })

@@ -657,7 +657,7 @@ function Config:ShowPageError(page, key, message)
   Config:SetStatus("The " .. tostring(key) .. " page failed to load. See chat for the exact error.", "danger")
   if not page.errorReported then
     page.errorReported = true
-    GSE.Print("/gsec " .. tostring(key) .. " error: " .. tostring(message), "GSE")
+    GSE.Print("/gsec " .. tostring(key) .. " error: " .. tostring(message), "GSEC")
   end
 end
 
@@ -744,7 +744,7 @@ function Config:Build()
   header:SetScript("OnMouseUp", function() frame:StopMovingOrSizing() end)
   local title = makeText(header, "GameFontNormal", 15, "gold")
   title:SetPoint("LEFT", header, "LEFT", 9, 1)
-  title:SetText("GSE CONTROL")
+  title:SetText("GSEC CONTROL")
   local subtitle = makeText(header, "GameFontNormalSmall", 10, "dim")
   subtitle:SetPoint("LEFT", title, "RIGHT", 8, 0)
   subtitle:SetText("SEQUENCES + SETTINGS")
@@ -837,7 +837,7 @@ function Config:Build()
   Config.status = makeText(footer, "GameFontNormalSmall", 10, "dim")
   Config.status:SetPoint("LEFT", footer, "LEFT", 6, 0)
   Config.status:SetText("Changes save immediately. Active macro settings are protected during combat.")
-  local openLegacy = Config:MakeButton(footer, "LEGACY", function() LibStub("AceConfigDialog-3.0"):Open("GSE") end)
+  local openLegacy = Config:MakeButton(footer, "LEGACY", function() LibStub("AceConfigDialog-3.0"):Open("GSEC") end)
   openLegacy:SetWidth(66)
   openLegacy:SetPoint("RIGHT", footer, "RIGHT", -4, 0)
 
@@ -858,9 +858,6 @@ function GSE.OpenControlPanel()
   end)
   if not ok then
     if Config.frame then Config.frame:Hide() end
-    GSE.Print("/gsec could not open: " .. tostring(message), "GSE")
+    GSE.Print("/gsec could not open: " .. tostring(message), "GSEC")
   end
 end
-
--- The old AceConfig command remains available as /gseo.  /gsec is the focused UI.
-GSE:RegisterChatCommand("gsec", function() GSE.OpenControlPanel() end)

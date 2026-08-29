@@ -3,8 +3,8 @@ WTF/
 Cache/
 Logs/
 SavedVariables/
-GSE/Sequences/MySequences.lua
-GSE_GUI/*-backup-*.lua
+GSEC/Sequences/MySequences.lua
+GSEC/UI/*-backup-*.lua
 
 # Temporary and backup files
 *.bak

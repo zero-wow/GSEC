@@ -204,12 +204,12 @@ function GSE:ADDON_LOADED(event, addon)
 
   GSE:RegisterMessage(Statics.ReloadMessage, "processReload")
 
-  LibStub("AceConfig-3.0"):RegisterOptionsTable("GSE", GSE.GetOptionsTable(), {"gseo"})
+  LibStub("AceConfig-3.0"):RegisterOptionsTable("GSEC", GSE.GetOptionsTable(), {"gseco"})
   if addon == GNOME then
-    LibStub("AceConfigDialog-3.0"):AddToBlizOptions("GSE", "|cffff0000GSE:|r Gnome Sequencer Enhanced")
+    LibStub("AceConfigDialog-3.0"):AddToBlizOptions("GSEC", "GSEC Legacy Options")
     if not GSEOptions.HideLoginMessage then
-      GSE.Print(GSEOptions.AuthorColour .. L["GnomeSequencer-Enhanced loaded.|r  Type "] .. GSEOptions.CommandColour .. L["/gs help|r to get started."], GNOME)
-      GSE.Print(L["New: Type "] .. GSEOptions.CommandColour .. "/gse loadsamples" .. L["|r to load sample macros for your class."], GNOME)
+      GSE.Print(GSEOptions.AuthorColour .. "GSEC loaded.|r Type " .. GSEOptions.CommandColour .. "/gsec|r to open the control center.", GNOME)
+      GSE.Print("Type " .. GSEOptions.CommandColour .. "/gsec loadsamples|r to load documented sample macros for your class.", GNOME)
     end
   end
 
@@ -315,22 +315,13 @@ GSE:RegisterEvent("UNIT_FACTION")
 GSE:RegisterEvent("PARTY_MEMBERS_CHANGED")
 GSE:RegisterEvent("RAID_ROSTER_UPDATE") -- 3.3.5a event for raid changes
 
-local function PrintGnomeHelp()
-  GSE.Print(L["GnomeSequencer was originally written by semlar of wowinterface.com."], GNOME)
-  GSE.Print(L["GSE is a complete rewrite of that addon that allows you create a sequence of macros to be executed at the push of a button."], GNOME)
-  GSE.Print(L["Like a /castsequence macro, it cycles through a series of commands when the button is pushed. However, unlike castsequence, it uses macro text for the commands instead of spells, and it advances every time the button is pushed instead of stopping when it can't cast something."], GNOME)
-  GSE.Print(L["This version has been modified by TimothyLuke to make the power of GnomeSequencer avaialble to people who are not comfortable with lua programming."], GNOME)
-  GSE.Print(L["To get started "] .. GSEOptions.CommandColour .. L["/gs|r will list any macros available to your spec.  This will also add any macros available for your current spec to the macro interface."], GNOME)
-  GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gs showspec|r will show your current Specialisation and the SPECID needed to tag any existing macros."], GNOME)
-  GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gs cleanorphans|r will loop through your macros and delete any left over GS-E macros that no longer have a sequence to match them."], GNOME)
-  GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gs checkmacrosforerrors|r will loop through your macros and check for corrupt macro versions.  This will then show how to correct these issues."], GNOME)
-  GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gse cleancorrupted|r will remove corrupted sequences that cannot be edited or deleted through the interface."], GNOME)
-  GSE.Print(L["The command "] .. GSEOptions.CommandColour .. L["/gse loadsamples|r will load documented sample macros for your current class."], GNOME)
+local function PrintGSECHelp()
+  GSE.Print("GSEC is a WotLK 3.3.5 macro sequencer and control center.", GNOME)
+  GSE.Print("GSEC is authored by Zero and built on GSE by TimothyLuke, Gummed, and cerberus; the original GnomeSequencer was written by semlar.", GNOME)
+  GSE.Print("Use " .. GSEOptions.CommandColour .. "/gsec|r to open the control center.", GNOME)
+  GSE.Print("Use " .. GSEOptions.CommandColour .. "/gsec showspec|r, " .. GSEOptions.CommandColour .. "/gsec cleanorphans|r, or " .. GSEOptions.CommandColour .. "/gsec checkmacrosforerrors|r for legacy maintenance commands.", GNOME)
+  GSE.Print("Use " .. GSEOptions.CommandColour .. "/gsec cleancorrupted|r or " .. GSEOptions.CommandColour .. "/gsec loadsamples|r for sequence maintenance and samples.", GNOME)
 end
-
-GSE:RegisterChatCommand("gsse", "GSSlash")
----GSE:RegisterChatCommand("gs", "GSSlash")
-GSE:RegisterChatCommand("gse", "GSSlash")
 
 
 -- Functions
@@ -342,7 +333,7 @@ function GSE:GSSlash(input)
    -- local _, specname, specdescription, specicon, _, specrole, specclass = GetSpecializationInfoByID(currentSpecID)
     GSE.Print(L["Your current Specialisation is "] .. currentSpecID .. ':' .. specname .. L["  The Alternative ClassID is "] .. currentclassId, GNOME)
   elseif string.lower(input) == "help" then
-    PrintGnomeHelp()
+    PrintGSECHelp()
   elseif string.lower(input) == "cleanorphans" or string.lower(input) == "clean" then
     GSE.CleanOrphanSequences()
   elseif string.lower(input) == "forceclean" then
@@ -376,7 +367,7 @@ function GSE:GSSlash(input)
   elseif string.lower(input) == "loadsamples" then
     if GSE.LoadDocumentedSampleMacros then
       GSE.LoadDocumentedSampleMacros()
-      GSE.Print(L["Sample macros for your class have been loaded. Type /gse to view them."], GNOME)
+      GSE.Print("Sample macros for your class have been loaded. Type /gsec to view them.", GNOME)
     else
       GSE.Print(L["Sample macros are not available."], GNOME)
     end
@@ -503,6 +494,21 @@ function GSE:ProcessOOCQueue()
     end
   end
 end
+
+function GSE:GSECSlash(input)
+  input = string.gsub(tostring(input or ""), "^%s*(.-)%s*$", "%1")
+  if input == "" then
+    if GSE.OpenControlPanel then
+      GSE.OpenControlPanel()
+    else
+      GSE.GUIShowViewer()
+    end
+    return
+  end
+  GSE:GSSlash(input)
+end
+
+GSE:RegisterChatCommand("gsec", "GSECSlash")
 
 function GSE.prepareTooltipOOCLine(tooltip, OOCEvent, row, oockey)
   tooltip:SetCell(row, 1, L[OOCEvent.action], "LEFT", 1)

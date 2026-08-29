@@ -1,11 +1,12 @@
--- GLOBALS: GSE
-GSE = LibStub("AceAddon-3.0"):NewAddon("GSE", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0")
+-- GLOBALS: GSE, GSEC
+GSE = LibStub("AceAddon-3.0"):NewAddon("GSEC", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceSerializer-3.0", "AceTimer-3.0")
+GSEC = GSE
 GSE.L = LibStub("AceLocale-3.0"):GetLocale("GSE")
 GSE.Static = {}
 
-GSE.VersionString = GetAddOnMetadata("GSE", "Version");
+GSE.VersionString = GetAddOnMetadata("GSEC", "Version");
 
-GSE.MediaPath = "Interface\\Addons\\GSE\\Media"
+GSE.MediaPath = "Interface\\Addons\\GSEC\\Media"
 
 GSE.OutputQueue = {}
 GSE.DebugOutput = ""
@@ -14,7 +15,7 @@ GSE.GUI = {}
 GSE.isNewFirstTimeCreated = false
 local L = GSE.L
 local Statics = GSE.Static
-local GNOME = "GSE"
+local GNOME = "GSEC"
 
 -- Initialisation Functions
 

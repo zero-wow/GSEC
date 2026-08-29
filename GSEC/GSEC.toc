@@ -1,7 +1,8 @@
 ## Interface: 30300
-## Title: GSE
-## Notes: Allows you to execute a sequence of macros without stopping on unusable spells.
-## Author: TimothyLuke, Gummed, cerberus
+## Title: GSEC
+## Notes: Macro sequencer and control center for Wrath of the Lich King 3.3.5.
+## Author: Zero
+## X-Credits: Based on GSE by TimothyLuke, Gummed, and cerberus; original GnomeSequencer by semlar.
 ## Version: 2204-wotlk
 ## SavedVariables: GSEOptions GSELibrary
 ## OptionalDeps: WeakAuras
@@ -75,3 +76,21 @@ API\Plugins.lua
 API\Serialisation.lua
 API\Options.lua
 API\Events.lua
+
+# GSEC control UI
+UI\Import.lua
+UI\Export.lua
+UI\DebugWindow.lua
+UI\Transmission.lua
+UI\VersionManagement.lua
+UI\Recorder.lua
+UI\Editor.lua
+UI\Viewer.lua
+UI\GUIFunctions.lua
+UI\Config.lua
+UI\ControlEditor.lua
+UI\SpellbookBuilder.lua
+UI\CompressSequence.lua
+
+# GSEC LibDataBroker launcher
+LDB\LDBProvider.lua

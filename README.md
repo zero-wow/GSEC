@@ -1,15 +1,15 @@
-# GSE for WotLK 3.3.5
+# GSEC for WotLK 3.3.5
 
-Gnome Sequencer Enhanced package for World of Warcraft Wrath of the Lich King 3.3.5 clients.
+GSEC is a single-folder macro sequencer and control center for World of Warcraft Wrath of the Lich King 3.3.5 clients.
 
 ## Installation
 
-Copy these folders directly into `Interface/AddOns` while preserving their names:
+Copy the `GSEC` folder directly into `Interface/AddOns`.
 
-- `GSE`
-- `GSE_GUI`
-- `GSE_LDB` (optional LibDataBroker launcher)
+The editor UI and LibDataBroker launcher are included in the same addon and load in a fixed order.
 
-The GUI addon depends on `GSE`; the LDB launcher depends on `GSE`.
+## Credits
 
-This repository deliberately excludes account, character, cache, log, and release-archive files.
+GSEC is authored and maintained by Zero. It is built on the original GSE work by TimothyLuke, Gummed, and cerberus, and the original GnomeSequencer by semlar.
+
+This repository deliberately excludes account, character, cache, log, backup, and release-archive files.

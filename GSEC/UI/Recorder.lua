@@ -14,7 +14,7 @@ local recbuttontext = L["Record"]
 -- Record Frame
 
 recordframe:SetTitle(L["Record Macro"])
-recordframe:SetStatusText(L["Gnome Sequencer: Record your rotation to a macro."])
+recordframe:SetStatusText("GSEC: Record your rotation to a macro.")
 recordframe:SetCallback("OnClose", function(widget)  recordframe:Hide(); end)
 recordframe:SetLayout("List")
 

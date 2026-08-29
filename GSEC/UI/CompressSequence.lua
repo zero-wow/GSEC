@@ -10,7 +10,7 @@ compressframe.AutoCreateIcon = true
 compressframe:Hide()
 
 
-compressframe:SetTitle(L["Gnome Sequencer: Compress a Sequence String."])
+compressframe:SetTitle("GSEC: Compress a Sequence String.")
 compressframe:SetStatusText(L["Compress Sequence from Forums"])
 compressframe:SetCallback("OnClose", function(widget)  compressframe:Hide(); end)
 compressframe:SetLayout("List")

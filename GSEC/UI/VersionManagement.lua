@@ -15,7 +15,7 @@ GSE.GUIVersionFrame = versionframe
 versionframe:Hide()
 
 versionframe:SetTitle(L["Manage Versions"])
-versionframe:SetStatusText(L["Gnome Sequencer: Sequence Version Manager"])
+versionframe:SetStatusText("GSEC: Sequence Version Manager")
 versionframe:SetCallback("OnClose", function(widget)  versionframe:Hide(); GSE.GUIViewFrame:Show() end)
 versionframe:SetLayout("List")
 
