@@ -583,6 +583,108 @@ function Editor:PickupSequenceMacro(entryKey)
   end
 end
 
+function Editor:PreviewImport(text)
+  text = trim(text)
+  if string.sub(text, 1, 9) ~= "Sequences" then
+    return nil, "Paste a readable GSEC collection beginning with Sequences."
+  end
+
+  local globals = setmetatable({ Sequences = {} }, { __index = _G })
+  local source = GSE.FixQuotes(GSE.StripControlandExtendedCodes(text)) .. "\nreturn Sequences"
+  local parser, err = loadstring(source, "GSEC Import Preview")
+  if not parser then return nil, tostring(err) end
+  setfenv(parser, globals)
+  local ok, sequences = pcall(parser)
+  if not ok or type(sequences) ~= "table" then return nil, "The pasted collection could not be read." end
+
+  local names = {}
+  for name, sequence in pairs(sequences) do
+    if type(name) ~= "string" or name == "" or type(sequence) ~= "table" or type(sequence.MacroVersions) ~= "table" then
+      return nil, "Every entry needs a name and a MacroVersions table."
+    end
+    table.insert(names, name)
+  end
+  table.sort(names)
+  if #names == 0 then return nil, "No sequences were found in the pasted collection." end
+  return names
+end
+
+function Editor:ShowImportDialog()
+  if not self.importDialog then
+    local dialog = CreateFrame("Frame", nil, Config.frame)
+    dialog:SetFrameStrata("DIALOG")
+    dialog:SetSize(500, 360)
+    dialog:SetPoint("CENTER", Config.frame, "CENTER", 0, 0)
+    dialog:EnableMouse(true)
+    Config:RegisterFrame(dialog, "surface", "selectedBorder")
+
+    local title = makeText(dialog, "GameFontNormal", 14, "gold")
+    title:SetPoint("TOPLEFT", dialog, "TOPLEFT", 12, -12)
+    title:SetText("IMPORT SEQUENCES")
+    local hint = makeText(dialog, "GameFontNormalSmall", 9, "dim")
+    hint:SetPoint("TOPLEFT", dialog, "TOPLEFT", 12, -35)
+    hint:SetWidth(476)
+    hint:SetJustifyH("LEFT")
+    hint:SetText("Paste one or more readable GSEC sequences. No macro icons are created until you drag a sequence to an action bar.")
+
+    local input = makeInput(dialog, true)
+    input:SetPoint("TOPLEFT", dialog, "TOPLEFT", 12, -62)
+    input:SetPoint("TOPRIGHT", dialog, "TOPRIGHT", -12, -62)
+    input:SetHeight(230)
+
+    local summary = makeText(dialog, "GameFontNormalSmall", 10, "dim")
+    summary:SetPoint("TOPLEFT", input, "BOTTOMLEFT", 0, -8)
+    summary:SetPoint("TOPRIGHT", input, "BOTTOMRIGHT", 0, -8)
+    summary:SetJustifyH("LEFT")
+    summary:SetText("Paste a collection to preview its sequence names.")
+
+    local close = Config:MakeButton(dialog, "CLOSE", function() dialog:Hide() end)
+    close:SetSize(70, 22)
+    close:SetPoint("BOTTOMRIGHT", dialog, "BOTTOMRIGHT", -12, 12)
+    local import = Config:MakeButton(dialog, "IMPORT", function()
+      local value = input.editbox:GetText() or ""
+      local names, err = Editor:PreviewImport(value)
+      if not names then
+        summary:SetText("IMPORT BLOCKED: " .. tostring(err))
+        Config:RegisterText(summary, "danger")
+        Config:ApplyTheme()
+        return
+      end
+      local success, message = GSE.ImportSequence(value, false, false)
+      if not success then
+        summary:SetText("IMPORT FAILED: " .. tostring(message or "See chat for the parser error."))
+        Config:RegisterText(summary, "danger")
+        Config:ApplyTheme()
+        return
+      end
+      if GSE.ProcessOOCQueue and not (type(InCombatLockdown) == "function" and InCombatLockdown()) then
+        pcall(function() GSE:ProcessOOCQueue() end)
+      end
+      Editor:RefreshList()
+      summary:SetText("IMPORTED " .. tostring(#names) .. ": " .. table.concat(names, ", "))
+      Config:RegisterText(summary, "success")
+      Config:ApplyTheme()
+    end)
+    import:SetSize(80, 22)
+    import:SetPoint("RIGHT", close, "LEFT", -8, 0)
+
+    input.OnValueChanged = function(_, value)
+      local names, err = Editor:PreviewImport(value)
+      if names then
+        summary:SetText("READY: " .. tostring(#names) .. " sequence" .. (#names == 1 and "" or "s") .. " - " .. table.concat(names, ", "))
+        Config:RegisterText(summary, "success")
+      else
+        summary:SetText("CHECK: " .. tostring(err))
+        Config:RegisterText(summary, "dim")
+      end
+      Config:ApplyTheme()
+    end
+    self.importDialog = dialog
+  end
+  self.importDialog:Show()
+  self.importDialog:Raise()
+end
+
 function Editor:RefreshList()
   if not self.listScroll or not self.listChild then return end
   local filter = string.lower(trim(self.search or ""))
@@ -1139,12 +1241,7 @@ function Editor:BuildWorkspace(page)
   end)
   export:SetSize(38, 20)
   export:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -106, -4)
-  local import = Config:MakeButton(panel, "IMP", function()
-    if GSE.GUIImportFrame then
-      GSE.GUIImportFrame.ReturnToControl = true
-      GSE.GUIImportFrame:Show()
-    end
-  end)
+  local import = Config:MakeButton(panel, "IMP", function() self:ShowImportDialog() end)
   import:SetSize(38, 20)
   import:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -64, -4)
   local delete = Config:MakeButton(panel, "DEL", function() self:Delete() end, "danger")
