@@ -218,7 +218,44 @@ local function normalizeName(value)
   local name = string.upper(trim(value)):gsub("[^%w_]+", "_"):gsub("_+", "_")
   name = name:gsub("^_+", ""):gsub("_+$", "")
   if name == "" then name = "AUTO_BUILD" end
-  return string.sub(name, 1, 16)
+  return name
+end
+
+local ROLE_ABBREVIATIONS = {
+  BURST = "BST",
+  COOLDOWN = "CD",
+  DEFENSE = "DEF",
+  HEALING = "HEAL",
+  ROTATION = "ROT",
+  UTILITY = "UTIL",
+}
+
+local function compactGeneratedBase(base, maximumLength)
+  local words = {}
+  for word in string.gmatch(normalizeName(base), "[^_]+") do
+    if word ~= "AUTO" then table.insert(words, word) end
+  end
+  if #words == 0 then words[1] = "BUILD" end
+
+  -- Shrink only as much as the macro limit requires. This keeps familiar
+  -- talent words intact whenever the role suffix already fits.
+  local result = table.concat(words, "_")
+  while string.len(result) > maximumLength do
+    local longestIndex, longestLength = nil, 0
+    for index, word in ipairs(words) do
+      if string.len(word) > longestLength then
+        longestIndex, longestLength = index, string.len(word)
+      end
+    end
+    if not longestIndex or longestLength <= 3 then break end
+    if longestLength >= 6 then
+      words[longestIndex] = string.sub(words[longestIndex], 1, 4)
+    else
+      words[longestIndex] = string.sub(words[longestIndex], 1, longestLength - 1)
+    end
+    result = table.concat(words, "_")
+  end
+  return result
 end
 
 local function cleanTooltipText(value)
@@ -643,7 +680,7 @@ function Builder:DefaultBaseName()
   local _, specName = GSE.GetCurrentSpecID()
   local className = GSE.GetCurrentClassNormalisedName and GSE.GetCurrentClassNormalisedName() or "BUILD"
   local stem = trim(specName) ~= "" and specName or className
-  return normalizeName("AUTO_" .. tostring(stem or "BUILD"))
+  return normalizeName(stem or "BUILD")
 end
 
 function Builder:Scan(sourceEvent)
@@ -1173,12 +1210,20 @@ end
 
 local function uniqueGeneratedName(base, suffix, reserved)
   base = normalizeName(base)
+  suffix = normalizeName(suffix)
   for attempt = 1, 999 do
     local attemptSuffix = "_" .. suffix .. (attempt == 1 and "" or tostring(attempt))
-    local candidate = string.sub(base, 1, math.max(1, 16 - string.len(attemptSuffix))) .. attemptSuffix
-    if not nameIsTaken(candidate, reserved) then
-      reserved[string.lower(candidate)] = true
-      return candidate
+    local candidates = {
+      base .. attemptSuffix,
+      base .. "_" .. (ROLE_ABBREVIATIONS[suffix] or suffix) .. (attempt == 1 and "" or tostring(attempt)),
+      compactGeneratedBase(base, 16 - string.len("_" .. (ROLE_ABBREVIATIONS[suffix] or suffix) .. (attempt == 1 and "" or tostring(attempt))))
+        .. "_" .. (ROLE_ABBREVIATIONS[suffix] or suffix) .. (attempt == 1 and "" or tostring(attempt)),
+    }
+    for _, candidate in ipairs(candidates) do
+      if string.len(candidate) <= 16 and not nameIsTaken(candidate, reserved) then
+        reserved[string.lower(candidate)] = true
+        return candidate
+      end
     end
   end
   return nil
